@@ -10,3 +10,22 @@
 {% endblock %}
 
 {% block nav-global %}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+var isNavigating = false;
+document.addEventListener('click', function(e) {
+    var link = e.target.closest('a');
+    if (link && link.href) isNavigating = true;
+});
+document.addEventListener('submit', function() {
+    isNavigating = true;
+});
+window.addEventListener('beforeunload', function() {
+    if (!isNavigating) {
+        navigator.sendBeacon("{% url 'polls:logout' %}");
+    }
+});
+</script>
+{% endblock %}

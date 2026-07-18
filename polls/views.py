@@ -1,9 +1,13 @@
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.db.models import F
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views import generic
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Choice, Question
 
@@ -49,3 +53,49 @@ def vote(request, question_id):
         selected_choice.votes = F("votes") + 1
         selected_choice.save()
         return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
+
+
+def admin_login(request):
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            next_url = request.GET.get("next", "/admin/")
+            return redirect(next_url)
+        else:
+            messages.error(request, "Invalid username or password.")
+    return render(request, "polls/login.html")
+
+
+def admin_signup(request):
+    if request.user.is_authenticated:
+        return redirect("/admin/")
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "")
+        password2 = request.POST.get("password2", "")
+
+        if not all([username, email, password]):
+            messages.error(request, "All fields are required.")
+        elif password != password2:
+            messages.error(request, "Passwords do not match.")
+        elif User.objects.filter(username=username).exists():
+            messages.error(request, "Username already taken.")
+        elif User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
+        else:
+            user = User.objects.create_superuser(
+                username=username, email=email, password=password
+            )
+            login(request, user)
+            return redirect("/admin/")
+    return render(request, "polls/signup.html")
+
+
+@csrf_exempt
+def admin_logout(request):
+    logout(request)
+    return redirect("polls:login")
