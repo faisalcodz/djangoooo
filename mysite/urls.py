@@ -9,6 +9,7 @@ urlpatterns = [
     path("admin/login/", views.admin_login, name="admin_login"),
     path("admin/", admin.site.urls),
     path("polls/", include("polls.urls")),
+    path("mcqs/", include("mcqs.urls")),
     path("__debug__/", include("debug_toolbar.urls")),
 ]
 
