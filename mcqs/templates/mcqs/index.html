@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Quiz</title>
+    <link rel="stylesheet" href="{% static 'mcqs/style.css' %}">
+</head>
+<body>
+    <div class="auth-container">
+        {% if no_questions %}
+            <div class="auth-header">
+                <h1>MCQ Quiz</h1>
+            </div>
+            <div class="quiz-empty">
+                <p>No questions available yet.</p>
+            </div>
+
+        {% elif session_ended %}
+            <div class="auth-header">
+                <h1>MCQ Quiz</h1>
+            </div>
+            <div class="session-ended">
+                <p class="session-title">Session ends here</p>
+                <p class="session-sub">You have attempted all the questions.</p>
+                <a href="{% url 'mcqs:mcq_reset' %}" class="btn" style="display:block;text-align:center;text-decoration:none;margin-top:16px;">Start Over</a>
+            </div>
+
+        {% else %}
+            <div class="auth-header">
+                <h1>MCQ Quiz</h1>
+            </div>
+
+            <div class="quiz-progress">
+                Question {{ answered_count|add:1 }} of {{ total_questions }}
+            </div>
+
+            <div class="quiz-question">
+                <p>{{ question.question_text }}</p>
+            </div>
+
+            <form method="post" action="{% url 'mcqs:submit_answer' question.pk %}">
+                {% csrf_token %}
+                {% for option in options %}
+                <div class="form-group">
+                    <label class="quiz-option">
+                        <input type="radio" name="option" value="{{ option.pk }}" required>
+                        <span>{{ option.option_text }}</span>
+                    </label>
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn">Submit</button>
+            </form>
+        {% endif %}
+    </div>
+</body>
+</html>

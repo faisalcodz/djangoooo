@@ -1,14 +1,20 @@
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.db.models import F
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views import generic
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Choice, Question
 
 
-class IndexView(generic.ListView):
+class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = "polls/index.html"
     context_object_name = "latest_question_list"
 
@@ -16,7 +22,7 @@ class IndexView(generic.ListView):
         return Question.objects.filter(pub_date__lte=timezone.now()).order_by("-pub_date")[:5]
 
 
-class DetailView(generic.DetailView):
+class DetailView(LoginRequiredMixin, generic.DetailView):
     model = Question
     template_name = "polls/detail.html"
 
@@ -24,7 +30,7 @@ class DetailView(generic.DetailView):
         return Question.objects.filter(pub_date__lte=timezone.now())
 
 
-class ResultsView(generic.DetailView):
+class ResultsView(LoginRequiredMixin, generic.DetailView):
     model = Question
     template_name = "polls/results.html"
 
@@ -32,6 +38,7 @@ class ResultsView(generic.DetailView):
         return Question.objects.filter(pub_date__lte=timezone.now())
 
 
+@login_required
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     try:
@@ -49,3 +56,49 @@ def vote(request, question_id):
         selected_choice.votes = F("votes") + 1
         selected_choice.save()
         return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
+
+
+def admin_login(request):
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            next_url = request.GET.get("next", "/polls/")
+            return redirect(next_url)
+        else:
+            messages.error(request, "Invalid username or password.")
+    return render(request, "polls/login.html")
+
+
+def admin_signup(request):
+    if request.user.is_authenticated:
+        return redirect("/polls/")
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "")
+        password2 = request.POST.get("password2", "")
+
+        if not all([username, email, password]):
+            messages.error(request, "All fields are required.")
+        elif password != password2:
+            messages.error(request, "Passwords do not match.")
+        elif User.objects.filter(username=username).exists():
+            messages.error(request, "Username already taken.")
+        elif User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
+        else:
+            user = User.objects.create_superuser(
+                username=username, email=email, password=password
+            )
+            login(request, user)
+            return redirect("/polls/")
+    return render(request, "polls/signup.html")
+
+
+@csrf_exempt
+def admin_logout(request):
+    logout(request)
+    return redirect("polls:login")

@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Quiz - Result</title>
+    <link rel="stylesheet" href="{% static 'mcqs/style.css' %}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>MCQ Quiz</h1>
+        </div>
+
+        <div class="quiz-progress">
+            Question {{ answered_count }} of {{ total_questions }}
+        </div>
+
+        <div class="quiz-question">
+            <p>{{ question.question_text }}</p>
+        </div>
+
+        {% if result == "correct" %}
+            <div class="quiz-msg correct-msg">
+                <p>Congratulations! Your answer is correct.</p>
+            </div>
+        {% else %}
+            <div class="quiz-msg wrong-msg">
+                <p>Wrong answer.</p>
+            </div>
+            {% if result.correct_option_text %}
+            <div class="correct-show">
+                <p>Correct answer: <strong>{{ result.correct_option_text }}</strong></p>
+            </div>
+            {% endif %}
+        {% endif %}
+
+        <div class="quiz-options-done">
+            {% for option in options %}
+            <div class="quiz-option disabled
+                {% if option.is_correct %}opt-correct{% endif %}">
+                <input type="radio" disabled
+                    {% if result != "correct" and option.pk == result.correct_option_id %}checked{% endif %}
+                    {% if result == "correct" and option.is_correct %}checked{% endif %}>
+                <span>{{ option.option_text }}</span>
+                {% if option.is_correct %}
+                    <span class="opt-badge">Correct</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if next_question %}
+            <a href="{% url 'mcqs:mcq_list' %}" class="btn" style="display:block;text-align:center;text-decoration:none;">Next Question</a>
+        {% else %}
+            <div class="session-ended" style="margin-top:16px;">
+                <p class="session-title">Session ends here</p>
+                <p class="session-sub">You have attempted all the questions.</p>
+                <a href="{% url 'mcqs:mcq_reset' %}" class="btn" style="display:block;text-align:center;text-decoration:none;margin-top:16px;">Start Over</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

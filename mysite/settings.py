@@ -13,6 +13,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     "debug_toolbar",
     "polls.apps.PollsConfig",
+    "mcqs.apps.McqsConfig",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -90,3 +91,8 @@ STATIC_URL = 'static/'
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+LOGIN_URL = "/polls/login/"
+LOGIN_REDIRECT_URL = "/polls/"
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
