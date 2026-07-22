@@ -93,5 +93,6 @@ INTERNAL_IPS = [
 ]
 
 LOGIN_URL = "/polls/login/"
+LOGIN_REDIRECT_URL = "/polls/"
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True

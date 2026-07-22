@@ -1,5 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.db.models import F
 from django.http import HttpResponseRedirect
@@ -12,7 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Choice, Question
 
 
-class IndexView(generic.ListView):
+class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = "polls/index.html"
     context_object_name = "latest_question_list"
 
@@ -20,7 +22,7 @@ class IndexView(generic.ListView):
         return Question.objects.filter(pub_date__lte=timezone.now()).order_by("-pub_date")[:5]
 
 
-class DetailView(generic.DetailView):
+class DetailView(LoginRequiredMixin, generic.DetailView):
     model = Question
     template_name = "polls/detail.html"
 
@@ -28,7 +30,7 @@ class DetailView(generic.DetailView):
         return Question.objects.filter(pub_date__lte=timezone.now())
 
 
-class ResultsView(generic.DetailView):
+class ResultsView(LoginRequiredMixin, generic.DetailView):
     model = Question
     template_name = "polls/results.html"
 
@@ -36,6 +38,7 @@ class ResultsView(generic.DetailView):
         return Question.objects.filter(pub_date__lte=timezone.now())
 
 
+@login_required
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     try:
@@ -62,7 +65,7 @@ def admin_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            next_url = request.GET.get("next", "/admin/")
+            next_url = request.GET.get("next", "/polls/")
             return redirect(next_url)
         else:
             messages.error(request, "Invalid username or password.")
@@ -71,7 +74,7 @@ def admin_login(request):
 
 def admin_signup(request):
     if request.user.is_authenticated:
-        return redirect("/admin/")
+        return redirect("/polls/")
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         email = request.POST.get("email", "").strip()
@@ -91,7 +94,7 @@ def admin_signup(request):
                 username=username, email=email, password=password
             )
             login(request, user)
-            return redirect("/admin/")
+            return redirect("/polls/")
     return render(request, "polls/signup.html")
 
 
