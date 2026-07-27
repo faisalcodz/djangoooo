@@ -19,7 +19,6 @@ class MCQQuestionAdmin(admin.ModelAdmin):
     list_display = ["question_text", "pub_date"]
     list_filter = ["pub_date"]
     search_fields = ["question_text"]
-
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         options = obj.mcqoption_set.all()
@@ -27,18 +26,14 @@ class MCQQuestionAdmin(admin.ModelAdmin):
         if correct_count != 1:
             if correct_count == 0:
                 from django.contrib import messages
-
                 messages.warning(
                     request,
                     f'Question "{obj.question_text}" has no correct option selected. Please mark exactly one option as correct.',
                 )
             elif correct_count > 1:
                 from django.contrib import messages
-
                 messages.warning(
                     request,
                     f'Question "{obj.question_text}" has {correct_count} correct options. Please mark exactly one option as correct.',
                 )
-
-
 admin.site.register(MCQQuestion, MCQQuestionAdmin)

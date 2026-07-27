@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -25,3 +26,18 @@ class MCQOption(models.Model):
 
     def __str__(self):
         return self.option_text
+
+
+class MCQAnswer(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    question = models.ForeignKey(MCQQuestion, on_delete=models.CASCADE)
+    selected_option = models.ForeignKey(MCQOption, on_delete=models.CASCADE)
+    is_correct = models.BooleanField()
+    answered_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "question")
+        ordering = ["-answered_at"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.question.question_text[:30]}"

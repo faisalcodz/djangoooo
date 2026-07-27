@@ -92,7 +92,7 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
-LOGIN_URL = "/polls/login/"
-LOGIN_REDIRECT_URL = "/polls/"
+LOGIN_URL = "/mcqs/login/"
+LOGIN_REDIRECT_URL = "/mcqs/"
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True

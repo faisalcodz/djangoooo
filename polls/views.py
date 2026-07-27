@@ -10,34 +10,22 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
-
 from .models import Choice, Question
-
-
 class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = "polls/index.html"
     context_object_name = "latest_question_list"
-
     def get_queryset(self):
         return Question.objects.filter(pub_date__lte=timezone.now()).order_by("-pub_date")[:5]
-
-
 class DetailView(LoginRequiredMixin, generic.DetailView):
     model = Question
     template_name = "polls/detail.html"
-
     def get_queryset(self):
         return Question.objects.filter(pub_date__lte=timezone.now())
-
-
 class ResultsView(LoginRequiredMixin, generic.DetailView):
     model = Question
     template_name = "polls/results.html"
-
     def get_queryset(self):
         return Question.objects.filter(pub_date__lte=timezone.now())
-
-
 @login_required
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
@@ -56,8 +44,6 @@ def vote(request, question_id):
         selected_choice.votes = F("votes") + 1
         selected_choice.save()
         return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
-
-
 def admin_login(request):
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
@@ -70,8 +56,6 @@ def admin_login(request):
         else:
             messages.error(request, "Invalid username or password.")
     return render(request, "polls/login.html")
-
-
 def admin_signup(request):
     if request.user.is_authenticated:
         return redirect("/polls/")
@@ -80,7 +64,6 @@ def admin_signup(request):
         email = request.POST.get("email", "").strip()
         password = request.POST.get("password", "")
         password2 = request.POST.get("password2", "")
-
         if not all([username, email, password]):
             messages.error(request, "All fields are required.")
         elif password != password2:
@@ -96,8 +79,6 @@ def admin_signup(request):
             login(request, user)
             return redirect("/polls/")
     return render(request, "polls/signup.html")
-
-
 @csrf_exempt
 def admin_logout(request):
     logout(request)
